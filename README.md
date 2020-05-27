@@ -186,24 +186,30 @@ To counter this I include a service to save the grid in the .vdb format for late
 
 ![openvdb2](https://user-images.githubusercontent.com/14944147/37010656-8ce4ff4c-20ba-11e8-9c35-1ce3e3039f77.png)
 
-### Filtering the 3D footprint
+# Filtering the 3D footprint
 ## Configure
-The 3D footprint is read from the /robot_description rosparam, so it should be declared in xacro/urdf file as the rest of the robot description. There is, for now, 4 shapes to describe the footprint of the robot : cylinder, sphere, rectangle and plane. With for each shape generic and specific parameters.
+The 3D footprint is read from the /robot_description rosparam, so it should be declared in xacro/urdf file as the rest of the robot description starting with the tag `footprint`. There is, for now, 4 shapes to describe the footprint of the robot : cylinder, sphere, rectangle and plane. With for each shape generic and specific parameters.
 
 ## Generic parameters
 - type : must be one of the 4 types of shapes above (cylinder, sphere, rectangle, plane)
 - origin : x y z coordinates from which the point must be filtered
 
 ## Shape description
-# Cylinder
+### Cylinder
 - radius : radius of the cylinder 
 - height : height of the cylinder
-# Sphere
+### Sphere
 - radius : radius of the sphere
 
-# Rectangle
+### Rectangle
 - start : x y z coordinates of the bottom left point of the rectangle
 - end : x y z coordinates of the top right point of the rectangle
-# Plane
+### Plane
 - normal : x y z normal which indicates the direction of the plane
 - inverse : true (filter the opposite of the normal), false (filter the normal)
+
+## Example
+```
+<footprint type="cylinder" height="0.60" radius="0.30" origin="0.0 0.0 0.0"/>
+<footprint type="plane" origin="0.0 0.0 0.05" normal="0.0 0.0 1.0" inverse="true"/>
+```
