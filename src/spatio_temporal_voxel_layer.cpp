@@ -481,18 +481,24 @@ bool SpatioTemporalVoxelLayer::updateFootprint(double robot_x, double robot_y, \
                                                double* max_y)
 /*****************************************************************************/
 {
+  //ROS_INFO_STREAM("In updateFootprint " << ros::Time::now().toSec());
   // updates layer costmap to include footprint for clearing in voxel grid
   if (!_update_footprint_enabled)
   {
+    ROS_INFO("!_update_footprint_enabled");
     return false;
   }
+  ROS_INFO("transformFootprint");
   costmap_2d::transformFootprint(robot_x, robot_y, robot_yaw, getFootprint(), \
                                  _transformed_footprint);
+  ROS_INFO("for");
   for (unsigned int i = 0; i < _transformed_footprint.size(); i++)
   {
+    ROS_INFO("touch");
     touch(_transformed_footprint[i].x, _transformed_footprint[i].y, \
           min_x, min_y, max_x, max_y);
   }
+  ROS_INFO("end updateFootprint");
 }
 
 /*****************************************************************************/
@@ -637,6 +643,7 @@ void SpatioTemporalVoxelLayer::updateCosts( \
                                     int min_i, int min_j, int max_i, int max_j)
 /*****************************************************************************/
 {
+  ROS_INFO("update costs");
   // update costs in master_grid with costmap_
   if(!_enabled)
   {
@@ -645,14 +652,17 @@ void SpatioTemporalVoxelLayer::updateCosts( \
 
   if (_update_footprint_enabled)
   {
+    ROS_INFO("setConvexPolygonCost");
     setConvexPolygonCost(_transformed_footprint, costmap_2d::FREE_SPACE);
   }
 
   switch (_combination_method)
   {
   case 0:
+    ROS_INFO("updateWithOverwrite");
     updateWithOverwrite(master_grid, min_i, min_j, max_i, max_j);
   case 1:
+    ROS_INFO("updateWithMax");
     updateWithMax(master_grid, min_i, min_j, max_i, max_j);
   default:
     break;
@@ -688,36 +698,44 @@ void SpatioTemporalVoxelLayer::updateBounds( \
                     double* min_x, double* min_y, double* max_x, double* max_y)
 /*****************************************************************************/
 {
+  ROS_INFO("updateBounds");
   // grabs new max bounds for the costmap
   if (!_enabled)
   {
     return;
   }
 
+  ROS_INFO("lock");
   boost::recursive_mutex::scoped_lock lock(_voxel_grid_lock);
 
   // Steve's Note June 22, 2018
   // I dislike this necessity, I can't remove the master grid's knowledge about
   // STVL on the fly so I have play games with the API even though this isn't
   // really a rolling plugin implementation. It works, but isn't ideal.
+  ROS_INFO("isRolling");
   if (layered_costmap_->isRolling())
   {
+    ROS_INFO("updateOrigin");
     updateOrigin(robot_x-getSizeInMetersX()/2, robot_y-getSizeInMetersY()/2);
   }
-
+  ROS_INFO("useExtraBounds");
   useExtraBounds(min_x, min_y, max_x, max_y);
 
   bool current = true;
   std::vector<observation::MeasurementReading> marking_observations, \
                                                clearing_observations;
+  ROS_INFO("GetMarkingObservations");
   current = GetMarkingObservations(marking_observations) && current;
+  ROS_INFO("GetClearingObservations");
   current = GetClearingObservations(clearing_observations) && current;
+  ROS_INFO("ObservationsResetAfterReading");
   ObservationsResetAfterReading();
   current_ = current;
 
   // navigation mode: clear observations, mapping mode: save maps and publish
   if (!_mapping_mode)
   {
+    ROS_INFO("ClearFrustums");
     _voxel_grid->ClearFrustums(clearing_observations);
   }
   else if (ros::Time::now() - _last_map_save_time > _map_save_duration)
@@ -736,22 +754,28 @@ void SpatioTemporalVoxelLayer::updateBounds( \
   }
 
   // mark observations
+  ROS_INFO("Mark");
   _voxel_grid->Mark(marking_observations);
 
   // update the ROS Layered Costmap
+  ROS_INFO("UpdateROSCostmap");
   UpdateROSCostmap(min_x, min_y, max_x, max_y);
 
   // publish point cloud in navigation mode
   if (_publish_voxels && !_mapping_mode)
   {
+    ROS_INFO("!_mapping_mode");
     sensor_msgs::PointCloud2::Ptr pc2(new sensor_msgs::PointCloud2());
+    ROS_INFO("GetOccupancyPointCloud");
     _voxel_grid->GetOccupancyPointCloud(pc2);
     pc2->header.frame_id = _global_frame;
     pc2->header.stamp = ros::Time::now();
+    ROS_INFO("publish");
     _voxel_pub.publish(*pc2);
   }
 
   // update footprint
+  ROS_INFO("updateFootprint");
   updateFootprint(robot_x, robot_y, robot_yaw, min_x, min_y, max_x, max_y);
   return;
 }
