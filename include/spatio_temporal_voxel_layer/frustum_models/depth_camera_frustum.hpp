@@ -54,7 +54,7 @@ class DepthCameraFrustum : public Frustum
 {
 public:
   DepthCameraFrustum(const double& vFOV, const double& hFOV,
-          const double& min_dist, const double& max_dist);
+          const double& min_dist, const double& max_dist, const double& voxel_size);
   virtual ~DepthCameraFrustum(void);
 
   // transform plane normals by depth camera pose
@@ -73,7 +73,7 @@ private:
   double Dot(const VectorWithPt3D&, const openvdb::Vec3d&) const;
   double Dot(const VectorWithPt3D&, const Eigen::Vector3d&) const;
 
-  double _vFOV, _hFOV, _min_d, _max_d;
+  double _vFOV, _hFOV, _min_d, _max_d, _voxel_size;
   std::vector<VectorWithPt3D> _plane_normals;
   Eigen::Vector3d _position;
   Eigen::Quaterniond _orientation;

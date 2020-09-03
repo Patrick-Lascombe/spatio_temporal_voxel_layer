@@ -42,8 +42,8 @@ namespace geometry
 
 /*****************************************************************************/
 DepthCameraFrustum::DepthCameraFrustum(const double& vFOV, const double& hFOV,
-                              const double& min_dist, const double& max_dist) :
-                   _vFOV(vFOV), _hFOV(hFOV), _min_d(min_dist), _max_d(max_dist)
+                              const double& min_dist, const double& max_dist, const double& voxel_size) :
+                   _vFOV(vFOV), _hFOV(hFOV), _min_d(min_dist), _max_d(max_dist), _voxel_size(voxel_size)
 /*****************************************************************************/
 {
   _valid_frustum = false;
@@ -101,8 +101,12 @@ void DepthCameraFrustum::ComputePlaneNormals(void)
   std::vector<Eigen::Vector3d>::iterator it;
   for (it = deflected_vecs.begin(); it != deflected_vecs.end(); ++it)
   {
-    pt_.push_back(*(it) * _min_d);
-    pt_.push_back(*(it) * _max_d);
+    pt_.push_back(*(it) * (_min_d - _voxel_size/2));
+    pt_.push_back(*(it) * (_max_d - _voxel_size/2));
+  }
+
+  for(int i = 0 ; i < pt_.size(); i++) {
+      ROS_INFO_STREAM("Index " << i << " : " << pt_[i]);
   }
 
   assert(pt_.size() == 8);
