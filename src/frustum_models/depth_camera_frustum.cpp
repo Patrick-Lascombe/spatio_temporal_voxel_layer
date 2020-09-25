@@ -110,8 +110,8 @@ void DepthCameraFrustum::ComputePlaneNormals(void)
   std::vector<Eigen::Vector3d>::iterator it;
   for (it = deflected_vecs.begin(); it != deflected_vecs.end(); ++it)
   {
-    pt_.push_back(*(it) * (_min_d - _voxel_size/2));
-    pt_.push_back(*(it) * (_max_d - _voxel_size/2));
+    pt_.push_back(*(it) * _min_d);
+    pt_.push_back(*(it) * _max_d);
   }
 
   assert(pt_.size() == 8);
