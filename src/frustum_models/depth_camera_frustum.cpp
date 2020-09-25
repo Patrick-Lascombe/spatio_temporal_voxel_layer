@@ -83,25 +83,21 @@ void DepthCameraFrustum::ComputePlaneNormals(void)
   std::vector<Eigen::Vector3d> deflected_vecs;
   deflected_vecs.reserve(4);
   Eigen::Vector3d Z = Eigen::Vector3d::UnitZ();
-  Eigen::Affine3d rz =
-    Eigen::Affine3d(Eigen::Translation3d(0.0, 0.0, -dist_translation));
+
   // rotate going CCW
   Eigen::Affine3d rx =
     Eigen::Affine3d(Eigen::AngleAxisd(_vFOV/2.,Eigen::Vector3d::UnitX()));
-  rx = rx * rz;
   Eigen::Affine3d ry =
     Eigen::Affine3d(Eigen::AngleAxisd(_hFOV/2.,Eigen::Vector3d::UnitY()));
-  deflected_vecs.push_back(rx * ry * Z);
+  deflected_vecs.push_back((rx * ry * Z));
 
   rx = Eigen::Affine3d(Eigen::AngleAxisd(-_vFOV/2.,Eigen::Vector3d::UnitX()));
-  rx = rx * rz;
   deflected_vecs.push_back(rx * ry * Z);
 
   ry = Eigen::Affine3d(Eigen::AngleAxisd(-_hFOV/2.,Eigen::Vector3d::UnitY()));
   deflected_vecs.push_back(rx * ry * Z);
 
   rx = Eigen::Affine3d(Eigen::AngleAxisd( _vFOV/2.,Eigen::Vector3d::UnitX()));
-  rx = rx * rz;
   deflected_vecs.push_back(rx * ry * Z);
 
   // get and store CCW 4 corners for each 2 planes at ends
