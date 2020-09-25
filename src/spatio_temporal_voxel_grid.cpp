@@ -156,6 +156,7 @@ void SpatioTemporalVoxelGrid::ClearFrustums(const \
     frustum->SetPosition(it->_origin);
     frustum->SetOrientation(it->_orientation);
     frustum->TransformModel();
+    _frustums.emplace_back(frustum, it->_decay_acceleration);
     obs_frustums.emplace_back(frustum, it->_decay_acceleration);
   }
   TemporalClearAndGenerateCostmap(obs_frustums);
@@ -316,10 +317,29 @@ void SpatioTemporalVoxelGrid::operator()(const \
       openvdb::Vec3d mark_grid(this->WorldToIndex( \
                                  openvdb::Vec3d(*iter_x, *iter_y, *iter_z)));
 
-      if(!this->MarkGridPoint(openvdb::Coord(mark_grid[0], mark_grid[1], \
-                                             mark_grid[2]), cur_time))
+      auto _frustum_it = _frustums.begin();
+      bool is_inside = true;
+      for(_frustum_it; _frustum_it != _frustums.end(); ++_frustum_it)
       {
-        std::cout << "Failed to mark point." << std::endl;
+        if (!_frustum_it->frustum)
+        {
+          continue;
+        }
+
+        if ( !_frustum_it->frustum->IsInside(this->IndexToWorld(openvdb::Coord(mark_grid[0], mark_grid[1], \
+                                                                              mark_grid[2])))) {
+            is_inside=false;
+            break;
+        }
+      }
+
+      if(is_inside) {
+
+          if(!this->MarkGridPoint(openvdb::Coord(mark_grid[0], mark_grid[1], \
+                                                 mark_grid[2]), cur_time))
+          {
+            std::cout << "Failed to mark point." << std::endl;
+          }
       }
     }
   }

@@ -174,6 +174,7 @@ protected:
   std::vector<geometry_msgs::Point32>*   _grid_points;
   std::unordered_map<occupany_cell, uint>* _cost_map;
   boost::mutex                            _grid_lock;
+  std::vector<frustum_model> _frustums;
 };
 
 } // end volume_grid namespace
