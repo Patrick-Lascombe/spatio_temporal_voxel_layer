@@ -74,12 +74,17 @@ void DepthCameraFrustum::ComputePlaneNormals(void)
     return;
   }
 
+  double FOV_max = std::max(_hFOV, _vFOV);
+
+  double err_max = sqrt(3)*_voxel_size/2;;
+  double dist_translation = err_max/cos(90-FOV_max/2);
+
   // Z vector and deflected vector capture
   std::vector<Eigen::Vector3d> deflected_vecs;
   deflected_vecs.reserve(4);
   Eigen::Vector3d Z = Eigen::Vector3d::UnitZ();
   Eigen::Affine3d rz =
-    Eigen::Affine3d(Eigen::Translation3d(0.0, 0.0, 0.5));
+    Eigen::Affine3d(Eigen::Translation3d(0.0, 0.0, -dist_translation));
   // rotate going CCW
   Eigen::Affine3d rx =
     Eigen::Affine3d(Eigen::AngleAxisd(_vFOV/2.,Eigen::Vector3d::UnitX()));
@@ -107,10 +112,6 @@ void DepthCameraFrustum::ComputePlaneNormals(void)
   {
     pt_.push_back(*(it) * (_min_d - _voxel_size/2));
     pt_.push_back(*(it) * (_max_d - _voxel_size/2));
-  }
-
-  for(int i = 0 ; i < pt_.size(); i++) {
-      ROS_INFO_STREAM("Index " << i << " : " << pt_[i]);
   }
 
   assert(pt_.size() == 8);
