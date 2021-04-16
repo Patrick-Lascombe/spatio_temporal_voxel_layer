@@ -116,6 +116,9 @@ void SpatioTemporalVoxelLayer::onInitialize(void)
   declareParameter("decay_model", rclcpp::ParameterValue(0));
   node->get_parameter(name_ + ".decay_model", decay_model_int);
   _decay_model = static_cast<volume_grid::GlobalDecayModel>(decay_model_int);
+  // min_age_outside_frustum param
+  declareParameter("min_age_outside_frustum", rclcpp::ParameterValue(0.0));
+  node->get_parameter(name_ + ".min_age_outside_frustum", _min_age_outside_frustum);
   // decay param
   declareParameter("voxel_decay", rclcpp::ParameterValue(-1.0));
   node->get_parameter(name_ + ".voxel_decay", _voxel_decay);
@@ -150,7 +153,7 @@ void SpatioTemporalVoxelLayer::onInitialize(void)
 
   _voxel_grid = std::make_unique<volume_grid::SpatioTemporalVoxelGrid>(
     node->get_clock(), _voxel_size, static_cast<double>(default_value_), _decay_model,
-    _voxel_decay, _publish_voxels);
+    _min_age_outside_frustum, _voxel_decay, _publish_voxels);
 
   matchSize();
 

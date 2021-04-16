@@ -168,7 +168,7 @@ private:
   std::unique_ptr<rclcpp::Duration> _map_save_duration;
   rclcpp::Time _last_map_save_time;
   std::string _global_frame;
-  double _voxel_size, _voxel_decay;
+  double _voxel_size, _min_age_outside_frustum, _voxel_decay;
   int _combination_method, _mark_threshold;
   volume_grid::GlobalDecayModel _decay_model;
   bool _update_footprint_enabled, _enabled;
