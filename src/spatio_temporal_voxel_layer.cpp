@@ -673,7 +673,8 @@ void SpatioTemporalVoxelLayer::updateCosts(
 
 /*****************************************************************************/
 void SpatioTemporalVoxelLayer::UpdateROSCostmap(
-  double * min_x, double * min_y, double * max_x, double * max_y)
+  double * min_x, double * min_y, double * max_x, double * max_y,
+  std::unordered_set<volume_grid::occupany_cell> & cleared_cells)
 /*****************************************************************************/
 {
   // grabs map of occupied cells from grid and adds to costmap_
@@ -690,6 +691,12 @@ void SpatioTemporalVoxelLayer::UpdateROSCostmap(
       costmap_[getIndex(map_x, map_y)] = nav2_costmap_2d::LETHAL_OBSTACLE;
       touch(it->first.x, it->first.y, min_x, min_y, max_x, max_y);
     }
+  }
+
+  std::unordered_set<volume_grid::occupany_cell>::iterator cell;
+  for (cell = cleared_cells.begin(); cell != cleared_cells.end(); ++cell)
+  {
+    touch(cell->x, cell->y, min_x, min_y, max_x, max_y);
   }
 }
 
@@ -726,6 +733,8 @@ void SpatioTemporalVoxelLayer::updateBounds(
   ObservationsResetAfterReading();
   current_ = current;
 
+  std::unordered_set<volume_grid::occupany_cell> cleared_cells;
+
   // navigation mode: clear observations, mapping mode: save maps and publish
   bool should_save = false;
   auto node = node_.lock();
@@ -733,7 +742,7 @@ void SpatioTemporalVoxelLayer::updateBounds(
     should_save = node->now() - _last_map_save_time > *_map_save_duration;
   }
   if (!_mapping_mode) {
-    _voxel_grid->ClearFrustums(clearing_observations);
+    _voxel_grid->ClearFrustums(clearing_observations, cleared_cells);
   } else if (should_save) {
     _last_map_save_time = node->now();
     time_t rawtime;
@@ -755,7 +764,7 @@ void SpatioTemporalVoxelLayer::updateBounds(
   _voxel_grid->Mark(marking_observations);
 
   // update the ROS Layered Costmap
-  UpdateROSCostmap(min_x, min_y, max_x, max_y);
+  UpdateROSCostmap(min_x, min_y, max_x, max_y, cleared_cells);
 
   // publish point cloud in navigation mode
   if (_publish_voxels && !_mapping_mode) {
